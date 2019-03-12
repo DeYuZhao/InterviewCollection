@@ -13,7 +13,7 @@
     * 深度为H的二叉树至多有2^(H-1)个结点。
 * 存储结构：
     * 链式存储：定义结点类，每个结点有自身的值和指向左右子树的指针引用。
-    * 顺序存储（存在数组中）：设一个结点的下标为i，则其父结点的下标为i/2，其左子结点的下标为2*i，其右子结点的下标为2*i+1。
+    * 顺序存储（存在数组中）：设一个结点的下标为i，则其父结点的下标为i/2，其左子结点的下标为2\*i，其右子结点的下标为2\*i+1。
 
 ### 二叉查找树（Binary Search／Sort Tree，BST）
 * 二叉查找树（BST）是一种二叉树。其任何结点的值都大于等于左子树中的值，小于等于右子树中的值。
@@ -26,7 +26,7 @@
 ### 哈夫曼树（Huffman Tree）
 * 哈夫曼树又称最优二叉树，是一种带权路径长度最短的二叉树。
 * 所谓树的带权路径长度，就是树中所有的叶结点的权值乘其到根结点的路径长度（若根结点为0层，叶结点到根结点的路径长度则为叶结点的层数）。
-* 树的带权路径长度记为WPL = (W1*L1 + W2*L2 + W3*L3 + … + Wn*Ln)，n个权值Wi(i=1,2,...,n)构成一棵有n个叶结点的二叉树，相应的叶结点的路径长度为Li(i=1,2,...,n)。
+* 树的带权路径长度记为WPL = (W1\*L1 + W2\*L2 + W3\*L3 + … + Wn\*Ln)，n个权值Wi(i=1,2,...,n)构成一棵有n个叶结点的二叉树，相应的叶结点的路径长度为Li(i=1,2,...,n)。
 * 哈夫曼编码步骤：
     1. 对给定的n个权值{W1,W2,W3,...,Wi,...,Wn}构成n棵二叉树的初始集合F={T1,T2,T3,...,Ti,...,Tn}，其中每棵二叉树Ti中只有一个权值为Wi的根结点，它的左右子树均为空。为方便在计算机上实现算法，一般还要求以Ti的权值Wi的升序排列。
     2. 在F中选取两棵根结点权值最小的树作为新构造的二叉树的左右子树，新二叉树的根结点的权值为其左右子树的根结点的权值之和。
@@ -79,23 +79,120 @@
 ## 常见应用
 
 ### 二叉树的遍历
-* 前序遍历：根->左->右
-    * 递归实现非常简单。
-    * 非递归实现：使用栈，先把根结点压进栈，然后开始循环，每次循环都从栈中弹出一个结点，如果结点不是null则输出，并将它的右子树和左子树依次压栈，注意此处顺序。直到栈为空时退出循环，结束遍历。（类似深度优先遍历）
-* 中序遍历：左->根->右
-    * 递归实现非常简单。
-    * 非递归实现：使用栈，对于任一结点P：
-        * 若其左子树不为空，则将P入栈并将P的左子树置为当前的P，然后再对当前结点P进行相同的处理；
-        * 若其左子树为空，则访问该P结点，然后将当前的P置为P的右子树；
-        * 重复以上操作直到P为null并且栈为空则遍历结束。
-* 后序遍历：左->右->根
-    * 递归实现非常简单。
-    * 非递归实现：对于任一结点P，先将其入栈。
-        * 如果P不存在左子树和右子树，则可以直接访问它；或者P存在左子树或者右子树，但是其左子树和右子树都被访问过了，则同样可以直接访问该结点。
-        * 若非上述两种情况，则将P的右子树和左子树依次入栈。
-        * 因此要维护一个pre指针记录上一次访问的结点，如果pre指向P的左子树或右子树，则说明P的左子树和右子树都被访问过了，可以直接访问结点P。
-* 层次遍历：广度优先遍历
-    * 使用队列，先把根结点入队，然后开始循环，每次循环都从队列中出队一个元素，如果元素不是null则输出，并将它的左子树和右子树依次入队。直到队列为空时退出循环，结束遍历。
+
+#### 前序遍历：根->左->右（DFS）
+```java
+List<Integer> preorder(Node root) {
+    List<Integer> result = new ArrayList<>();
+    Stack<Node> stack = new Stack<>();
+    Node node;
+    // 先把根节点入栈
+    stack.push(root);
+    while (!stack.empty()) {
+        node = stack.pop();
+        if (node != null) {
+            // 对于栈中每一个结点node，只要node不为null，就读取node的值，并依次将其右子树和左子树入栈
+            result.add(node.val);
+            stack.push(node.right);
+            stack.push(node.left);
+        }
+    }
+    return result;
+}
+```
+
+#### 中序遍历：左->根->右
+```java
+List<Integer> inorder(Node root) {
+    List<Integer> result = new ArrayList<>();
+    Stack<Node> stack = new Stack<>();
+    Node node;
+    // 先把根节点入栈
+    stack.push(root);
+    while (!stack.empty()) {
+        // 对于栈中每一个结点node，只要node不为null，就把node入栈并将node置为node.left，然后重复
+        node = stack.pop();
+        while (node != null) {
+            stack.push(node);
+            node = node.left;
+        }
+        if (!stack.empty()) {
+            // 直到node.left为空时，栈顶元素就是node，此时读取node的值，并将node.right入栈
+            node = stack.pop();
+            result.add(node.val);
+            stack.push(node.right);
+        }
+    }
+    return result;
+}
+```
+
+#### 后序遍历：左->右->根
+```java
+List<Integer> postorderTraversalIteratively(Node root) {
+    List<Integer> result = new ArrayList<>();
+    Stack<Node> stack = new Stack<>();
+    Node current, previous = null;
+    // 先把根节点入栈
+    stack.push(root);
+    while (!stack.empty()) {
+        current = stack.pop();
+        if (current == null) continue;
+        if ((current.left == null && current.right == null) ||
+            (current.left != null && current.left == previous) ||
+            (current.right != null && current.right == previous)) {
+                // current为叶子结点或current的子树被访问过时，可以访问current
+                result.add(current.val);
+        } else {
+            // 否则就依次把current、current.right、current.left入栈
+            stack.push(current);
+            stack.push(current.right);
+            stack.push(current.left);
+        }
+        previous = current;
+    }
+    return result;
+}
+```
+
+#### 层次遍历（BFS）
+```java
+List<List<Integer>> levelOrder(Node root) {
+    List<List<Integer>> result = new ArrayList<>();
+    Queue<Node> queue1 = new LinkedList<>(), queue2 = new LinkedList<>();
+    // 根结点入队
+    queue1.offer(root);
+    // queue1和queue2交替作为from和to，使用一个标记位记录
+    boolean queue1ToQueue2 = true;
+    while (true) {
+        List<Integer> level;
+        if (queue1ToQueue2) {
+            level = traversal(queue1, queue2);
+        } else {
+            level = traversal(queue2, queue1);
+        }
+        // 本层遍历结果为空时表明遍历结束，退出循环
+        if (level.isEmpty()) break;
+        result.add(level);
+        queue1ToQueue2 = !queue1ToQueue2;
+    }
+    return result;
+}
+
+List<Integer> traversal(Queue<Node> from, Queue<Node> to) {
+    // 遍历一层结点，本层结点存在from中，把下一层结点存在to，返回本层遍历结果
+    List<Integer> result = new ArrayList<>();
+    while (!from.isEmpty()) {
+        Node node = from.poll();
+        if (node != null) {
+            result.add(node.val);
+            to.offer(node.left);
+            to.offer(node.right);
+        }
+    }
+    return result;
+}
+```
 
 ### 已知前序遍历、中序遍历、后序遍历中的两种，求剩下的一种。
 * 前+中=>后：由前序遍历的第一个结点确定根结点，再根据中序遍历中根结点的位置，将中序遍历的结果分割为左子树和右子树，递归求解即可。
@@ -106,12 +203,12 @@
 ```java
 int height(Node root) {
     if (root == null) return 0;
-    int leftHeight = height(root.left);
-    int rightHeight = height(root.right);
-    return leftHeight > rightHeight ? 1+leftHeight : 1+rightHeight;
+        int leftHeight = maxDepth(root.left);
+        int rightHeight = maxDepth(root.right);
+        return Math.max(leftHeight, rightHeight) + 1;
 }
 ```
-
+    
 ### 求第K层的结点数
 ```java
 int getKLevel(Node node, int k) {
@@ -205,11 +302,11 @@ boolean findAllAncestors(Node node, Node target) {
 
 ### 二分查找树转化为排序的循环双链表
 ```java
-TreeNode leftTail;
-public TreeNode Convert(TreeNode root) {
+Node leftTail;
+public Node Convert(Node root) {
     if (root == null) return null;
     // 将左子树构造成双链表，并返回链表头节点。
-    TreeNode left = Convert(root.left);
+    Node left = Convert(root.left);
     // 如果左子树链表不为空，将当前root追加到左子树链表的最后一个节点，使用leftTail记录。
     if (left == null) {
         left = root;
@@ -221,7 +318,7 @@ public TreeNode Convert(TreeNode root) {
         leftTail = root;
     }
     // 将右子树构造成双链表，并返回链表头节点。
-    TreeNode right = Convert(root.right);
+    Node right = Convert(root.right);
     // 如果右子树链表不为空的话，将该链表追加到root节点之后。
     if (right != null) {
         right.left = root;
@@ -233,5 +330,5 @@ public TreeNode Convert(TreeNode root) {
 ```
 
 ### 有序链表转化为平衡的二分查找树
-采用自顶向下的方法，先可以使用快慢指针找到链表的中间节点作为二叉树的根节点，然后递归左右两部分。
+采用自顶向下的方法，先使用快慢指针找到链表的中间节点作为二叉树的根节点，然后递归左右两部分。
 
